@@ -1,0 +1,112 @@
+.admin-section {
+    margin-top: 24px;
+}
+
+/* Formulario Administrador */
+.admin-form-container {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 24px;
+    border-radius: 10px;
+    margin-bottom: 32px;
+}
+
+.admin-form-container h3 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    color: #1e293b;
+}
+
+.admin-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.admin-form-grid .full-width {
+    grid-column: span 2;
+}
+
+.admin-form-grid label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #475569;
+}
+
+.admin-form-grid input,
+.admin-form-grid textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+.form-actions {
+    margin-top: 20px;
+    display: flex;
+    gap: 12px;
+}
+
+.btn-success {
+    background-color: #16a34a;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-success:hover {
+    background-color: #15803d;
+}
+
+/* Tabla de Inventario */
+.admin-table-container {
+    overflow-x: auto;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+    background-color: #fff;
+}
+
+.admin-table th,
+.admin-table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.admin-table th {
+    background-color: #f1f5f9;
+    color: #475569;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.btn-action-edit {
+    background-color: #f59e0b;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 8px;
+}
+
+.btn-action-delete {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
