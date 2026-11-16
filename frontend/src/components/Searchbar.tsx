@@ -25,6 +25,7 @@ export function SearchBar({
         onChange={(e) => onCambio(e.target.value)}
         placeholder={placeholder}
         aria-label="Buscar productos"
+        style={{ paddingLeft: '36px' }} 
       />
 
       {valor && (

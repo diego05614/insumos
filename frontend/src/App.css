@@ -1,7 +1,47 @@
-/* BANNER PRINCIPAL DEL SITIO*/
+/* 1. VARIABLES DE ESTILO Y TEMAS */
+:root {
+  --primary-color: #16a34a;
+  --primary-hover: #15803d;
+  --secondary-color: #475569;
+  --secondary-hover: #334155;
+  --danger-color: #ef4444;
+  --danger-hover: #dc2626;
+  --bg-color: #f8fafc;
+  --card-bg: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  --radius: 10px;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  line-height: 1.5;
+}
+
+/* 2. ESTRUCTURA GENERAL */
+.app-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 25px;
+  width: 100%;
+}
+
+/* 3. BANNER PRINCIPAL DEL SITIO */
 header.header-banner {
-  background: linear-gradient(rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.65)), 
-              url('https://iqvagro.com/wp-content/uploads/2024/01/para-que-sirve-el-fungicida-1030x579.jpg') center/cover no-repeat;
+  background: linear-gradient(rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.65)),
+    url('https://iqvagro.com/wp-content/uploads/2024/01/para-que-sirve-el-fungicida-1030x579.jpg') center/cover no-repeat;
   color: #ffffff;
   padding: 30px 35px;
   border-radius: var(--radius);
@@ -11,9 +51,9 @@ header.header-banner {
   align-items: center;
   margin-bottom: 30px;
   border: 1px solid var(--border-color);
-  flex-wrap: wrap;
   gap: 15px;
 }
+
 .banner-brand {
   display: flex;
   align-items: center;
@@ -50,82 +90,10 @@ header.header-banner {
 .banner-user-actions {
   display: flex;
   align-items: center;
+  gap: 10px;
 }
 
-/* Adaptabilidad a dispositivos móviles */
-@media (max-width: 600px) {
-  header.header-banner {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .banner-user-actions {
-    width: 100%;
-    justify-content: flex-end;
-  }
-}
-
-
-/* 1. VARIABLES DE ESTILO Y TEMAS */
-:root {
-  --primary-color: #16a34a;
-  --primary-hover: #15803d;
-  --secondary-color: #475569;
-  --secondary-hover: #334155;
-  --danger-color: #ef4444;
-  --danger-hover: #dc2626;
-  --bg-color: #f8fafc;
-  --card-bg: #ffffff;
-  --text-main: #0f172a;
-  --text-muted: #64748b;
-  --border-color: #e2e8f0;
-  --radius: 10px;
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-}
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
-}
-
-body {
-  background-color: var(--bg-color);
-  color: var(--text-main);
-  line-height: 1.5;
-}
-
-/* 2. ESTRUCTURA Y ENCABEZADO */
-.app-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px 25px;
-  width: 100%;
-}
-
-header {
-  background: var(--card-bg);
-  padding: 18px 24px;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
-  border: 1px solid var(--border-color);
-}
-
-header h1 {
-  font-size: 1.5rem;
-  color: var(--primary-color);
-  font-weight: 700;
-  letter-spacing: -0.5px;
-}
-
-/* 3. BOTONES Y ACCIONES */
+/* 4. BOTONES Y ACCIONES */
 .btn-primary,
 .btn-secondary,
 .btn-danger,
@@ -183,12 +151,31 @@ header h1 {
   color: #ffffff;
 }
 
-/* 4. CATÁLOGO DE PRODUCTOS (RESPONSIVE HORIZONTAL GRID) */
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.btn-success:disabled {
+  background-color: #e2e8f0 !important;
+  color: #94a3b8 !important;
+  border-color: #cbd5e1 !important;
+  cursor: not-allowed !important;
+  opacity: 0.85;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* 5. CATÁLOGO DE PRODUCTOS (GRID PRINCIPAL) */
+.catalogo-titulo {
+  color: #0f172a;
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 14px;
+}
+
 .catalogo-grid {
   display: grid;
-  /* CORRECCIÓN: 260px permite colocar varias tarjetas en horizontal */
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 25px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
   width: 100%;
   margin-top: 20px;
 }
@@ -212,11 +199,13 @@ header h1 {
 
 .producto-img {
   width: 100%;
-  height: 180px;
-  object-fit: cover;
+  height: 150px;
+  object-fit: contain;
+  background-color: #ffffff;
   border-radius: 8px;
-  margin-bottom: 12px;
-  background-color: #f1f5f9;
+  padding: 6px;
+  border: 1px solid #f1f5f9;
+  margin-bottom: 10px;
 }
 
 .producto-card h3 {
@@ -226,9 +215,16 @@ header h1 {
 }
 
 .producto-card p {
+  font-size: 0.82rem;
+  line-height: 1.3;
+  margin-bottom: 6px;
   color: var(--text-muted);
-  font-size: 0.9rem;
-  margin-bottom: 12px;
+  display: -webkit-box;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .categoria-tag {
@@ -250,7 +246,34 @@ header h1 {
   margin-top: 8px;
 }
 
-/* 5. PANEL ADMINISTRADOR Y TABLAS */
+/* 6. ETIQUETAS DE STOCK (ÚNICA DEFINICIÓN) */
+.stock-badge {
+  display: inline-block;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 999px;
+  margin-bottom: 6px;
+}
+
+.stock-disponible {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.stock-bajo {
+  background-color: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.stock-agotado {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+/* 7. PANEL ADMINISTRADOR Y TABLAS */
 .admin-panel {
   background: var(--card-bg);
   padding: 25px;
@@ -289,54 +312,71 @@ header h1 {
   background-color: #f1f5f9;
 }
 
-/* 6. FORMULARIOS E INPUTS */
-input,
-textarea,
-select {
-  width: 100%;
-  padding: 10px 14px;
+/* 8. FORMULARIOS, BÚSQUEDA E INPUTS UNIFICADOS */
+input[type="text"],
+input[type="search"],
+input[type="number"],
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+select,
+.search-input,
+.filtro-control {
+  height: 42px;
+  padding: 0 12px;
+  font-size: 0.92rem;
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
   border-radius: 8px;
-  border: 1px solid var(--border-color);
-  background-color: #ffffff;
-  font-size: 0.95rem;
-  color: var(--text-main);
+  width: 100%;
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-input:focus,
-textarea:focus,
-select:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
+/* Margen izquierdo exclusivo para el buscador con ícono de lupa */
+.search-input {
+  padding-left: 38px !important;
 }
 
 textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  font-size: 0.92rem;
+  color: #0f172a;
   min-height: 80px;
   resize: vertical;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-/* 7. RESPONSIVE (AJUSTE PARA CELULARES) */
-@media (max-width: 600px) {
-  .app-container {
-    padding: 10px;
-  }
-  
-  .catalogo-grid {
-    grid-template-columns: repeat(auto-fill, minmax(100%, 1fr));
-    gap: 15px;
-  }
+input::placeholder,
+textarea::placeholder,
+.search-input::placeholder {
+  color: #64748b !important;
+  opacity: 1;
 }
 
-/*8. ESTILOS DEL MODAL DE LOGIN */
+input:focus,
+textarea:focus,
+select:focus,
+.search-input:focus {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
+}
+
+/* 9. MODALES (LOGIN, COMPROBANTE, CONFIRMACIONES) */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(15, 23, 42, 0.6); /* Oscurece el fondo */
-  backdrop-filter: blur(4px);              /* Efecto de desenfoque moderno */
+  background-color: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -344,9 +384,10 @@ textarea {
   animation: fadeIn 0.2s ease-out;
 }
 
-.modal-container {
+.modal-container,
+.modal-content {
   background: #ffffff;
-  padding: 30px;
+  padding: 28px;
   border-radius: 12px;
   width: 100%;
   max-width: 400px;
@@ -381,11 +422,11 @@ textarea {
   color: var(--danger-color);
 }
 
-.modal-form .form-group {
-  margin-bottom: 16px;
+.form-group {
+  margin-bottom: 14px;
 }
 
-.modal-form label {
+.form-group label {
   display: block;
   font-size: 0.85rem;
   font-weight: 600;
@@ -395,11 +436,19 @@ textarea {
 
 .modal-actions {
   display: flex;
-  flex-direction: column;
   gap: 10px;
-  margin-top: 24px;
+  margin-top: 20px;
 }
-/* Animaciones de entrada */
+
+.error-message {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 14px;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -408,4 +457,126 @@ textarea {
 @keyframes scaleUp {
   from { transform: scale(0.95); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
+}
+
+/* 10. NOTIFICACIONES TOAST (ÚNICA DEFINICIÓN) */
+.toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 90vw;
+}
+
+.toast-item {
+  background-color: #0f172a;
+  color: #ffffff;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.25);
+  border-left: 4px solid var(--primary-color);
+  animation: slideInRight 0.25s ease-out;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toast-item.error {
+  border-left-color: var(--danger-color);
+}
+
+.toast-item.info {
+  border-left-color: #3b82f6;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* 11. ADAPTABILIDAD A DISPOSITIVOS MÓVILES */
+@media (max-width: 600px) {
+  .app-container {
+    padding: 10px 8px;
+    overflow-x: hidden;
+  }
+
+  header.header-banner {
+    padding: 12px 16px;
+    gap: 8px;
+  }
+
+  .banner-brand {
+    gap: 8px;
+    max-width: 65%;
+  }
+
+  .banner-icon {
+    font-size: 1.4rem;
+    padding: 4px 8px;
+  }
+
+  .banner-title {
+    font-size: 1rem;
+  }
+
+  .banner-subtitle {
+    display: none;
+  }
+
+  .banner-user-actions {
+    width: auto;
+    justify-content: flex-end;
+  }
+
+  .banner-user-actions span {
+    font-size: 0.75rem;
+  }
+
+  .catalogo-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-top: 15px;
+  }
+
+  .producto-card {
+    padding: 10px 8px;
+  }
+
+  .producto-img {
+    height: 100px;
+  }
+
+  .producto-card h3 {
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+  }
+
+  .producto-card p {
+    font-size: 0.75rem;
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+
+  .producto-card.expandido p {
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
+    display: block;
+    overflow: visible;
+  }
+
+  .producto-card .btn-primary,
+  .producto-card .btn-secondary {
+    padding: 6px 4px;
+    font-size: 0.75rem;
+  }
+
+  .precio-tag {
+    font-size: 0.88rem;
+  }
 }

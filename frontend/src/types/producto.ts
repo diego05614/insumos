@@ -4,7 +4,7 @@ export type Producto = {
     descripcion: string;
     precio: number;
     stock: number;
-    imagen_url?: string;
+    imagen_url?: string | null;
     categoria_id?: number | null;
     categoria_nombre?: string;
 }

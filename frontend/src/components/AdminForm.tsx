@@ -89,7 +89,6 @@ export function AdminForm({
                         {editandoId !== null ? 'Guardar Cambios' : 'Crear Producto'}
                     </button>
 
-                    {/* El botón de cancelar ahora se muestra SIEMPRE */}
                     <button type="button" className="btn-secondary" onClick={onCancelar}>
                         Cancelar
                     </button>
