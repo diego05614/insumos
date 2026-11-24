@@ -12,8 +12,10 @@ export function obtenerSessionId(): string {
   return sessionId;
 }
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
 export const api = axios.create({
-  baseURL: 'https://pdlc11kz-3000.use2.devtunnels.ms/api',
+  baseURL: API_URL,
 });
 
 api.interceptors.request.use((config) => {
