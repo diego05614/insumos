@@ -10,7 +10,9 @@ export interface Producto {
   stock: number;
   imagen_url?: string;
   categoria_id?: number | null;
+  activo?: number;
 }
+
 // GET /api/productos
 export const getProductos = async (_req: Request, res: Response): Promise<void> => {
   try {
@@ -18,6 +20,7 @@ export const getProductos = async (_req: Request, res: Response): Promise<void> 
       SELECT p.*, c.nombre AS categoria_nombre 
       FROM productos p 
       LEFT JOIN categorias c ON p.categoria_id = c.id
+      WHERE p.activo = 1
       ORDER BY p.id DESC
     `;
     const [rows] = await pool.query<RowDataPacket[]>(query);
@@ -28,7 +31,6 @@ export const getProductos = async (_req: Request, res: Response): Promise<void> 
 };
 
 // GET /api/productos/:id
-
 export const getProductoById = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   try {
@@ -36,7 +38,7 @@ export const getProductoById = async (req: Request, res: Response): Promise<void
       SELECT p.*, c.nombre AS categoria_nombre 
       FROM productos p 
       LEFT JOIN categorias c ON p.categoria_id = c.id
-      WHERE p.id = ?
+      WHERE p.id = ? AND p.activo = 1
     `;
     const [rows] = await pool.query<RowDataPacket[]>(query, [id]);
     if (rows.length === 0) {
@@ -48,15 +50,16 @@ export const getProductoById = async (req: Request, res: Response): Promise<void
     res.status(500).json({ message: 'Error al obtener producto', error });
   }
 };
+
 // POST /api/productos
 export const createProducto = async (req: Request, res: Response): Promise<void> => {
   const { nombre, descripcion, precio, stock, imagen_url, categoria_id }: Producto = req.body;
   try {
     const [result] = await pool.query<ResultSetHeader>(
-      'INSERT INTO productos (nombre, descripcion, precio, stock, imagen_url, categoria_id) VALUES (?, ?, ?, ?, ?, ?)',
+      'INSERT INTO productos (nombre, descripcion, precio, stock, imagen_url, categoria_id, activo) VALUES (?, ?, ?, ?, ?, ?, 1)',
       [nombre, descripcion, precio, stock, imagen_url || null, categoria_id || null]
     );
-    res.status(201).json({ id: result.insertId, nombre, precio, stock, categoria_id });
+    res.status(201).json({ id: result.insertId, nombre, precio, stock, categoria_id, activo: 1 });
   } catch (error) {
     res.status(500).json({ message: 'Error al crear producto', error });
   }
@@ -69,7 +72,7 @@ export const updateProducto = async (req: Request, res: Response): Promise<Respo
 
   try {
     const [result] = await pool.query<ResultSetHeader>(
-      'UPDATE productos SET nombre = ?, descripcion = ?, precio = ?, stock = ?, imagen_url = ?, categoria_id = ? WHERE id = ?',
+      'UPDATE productos SET nombre = ?, descripcion = ?, precio = ?, stock = ?, imagen_url = ?, categoria_id = ? WHERE id = ? AND activo = 1',
       [nombre, descripcion, precio, stock, imagen_url || null, categoria_id || null, id]
     );
 
@@ -83,17 +86,20 @@ export const updateProducto = async (req: Request, res: Response): Promise<Respo
   }
 };
 
-// DELETE /api/productos/:id
+// DELETE /api/productos/:id Borrado lógico para productos descontinuados
 export const deleteProducto = async (req: Request, res: Response): Promise<Response> => {
   const { id } = req.params;
   try {
-    const [result] = await pool.query<ResultSetHeader>('DELETE FROM productos WHERE id = ?', [id]);
+    const [result] = await pool.query<ResultSetHeader>(
+      'UPDATE productos SET activo = 0 WHERE id = ?',
+      [id]
+    );
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: 'Producto no encontrado' });
     }
 
-    return res.json({ message: 'Producto eliminado correctamente', id: Number(id) });
+    return res.json({ message: 'Producto descontinuado y eliminado correctamente', id: Number(id) });
   } catch (error) {
     return res.status(500).json({ message: 'Error al eliminar producto', error });
   }

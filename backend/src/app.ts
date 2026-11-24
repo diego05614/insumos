@@ -5,6 +5,7 @@ import productoRoutes from './routes/productoRoutes';
 import categoriaRoutes from './routes/categoriaRoutes';
 import pedidosRoutes from './routes/pedidosRoutes';
 import authRoutes from './routes/authRoutes';
+import carritoRoutes from './routes/carritoRoutes';
 
 dotenv.config();
 
@@ -17,7 +18,7 @@ app.use('/api/productos', productoRoutes);
 app.use('/api/categorias', categoriaRoutes);
 app.use('/api/pedidos', pedidosRoutes);
 app.use('/api/auth', authRoutes);
-
+app.use('/api/carrito', carritoRoutes);
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost: ${PORT}`);
 });

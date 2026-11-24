@@ -1,16 +1,20 @@
 import { Router } from 'express';
-import { 
-  getCategorias, 
-  createCategoria, 
-  updateCategoria, 
-  deleteCategoria 
+import {
+  getCategorias,
+  createCategoria,
+  updateCategoria,
+  deleteCategoria,
 } from '../controllers/categoriaController';
+import { verificarToken, soloAdmin } from '../middlewares/authMiddleware';
 
 const router = Router();
 
+// Lectura pública
 router.get('/', getCategorias);
-router.post('/', createCategoria);
-router.put('/:id', updateCategoria);
-router.delete('/:id', deleteCategoria);
+
+// Gestión protegida solo para administradores
+router.post('/', verificarToken, soloAdmin, createCategoria);
+router.put('/:id', verificarToken, soloAdmin, updateCategoria);
+router.delete('/:id', verificarToken, soloAdmin, deleteCategoria);
 
 export default router;

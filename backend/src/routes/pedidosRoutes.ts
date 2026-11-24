@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
 import { pool } from '../config/db';
+import { verificarToken, soloAdmin } from '../middlewares/authMiddleware';
 
 const router = Router();
 
@@ -26,8 +27,8 @@ interface DetallePedidoDbRow extends RowDataPacket {
   subtotal: number;
 }
 
-// 1. GET /api/pedidos
-router.get('/', async (_req: Request, res: Response): Promise<void> => {
+// 1. GET /api/pedidos (Solo Admin: historial completo de ventas)
+router.get('/', verificarToken, soloAdmin, async (_req: Request, res: Response): Promise<void> => {
   try {
     const [pedidos] = await pool.query<PedidoDbRow[]>(
       'SELECT * FROM pedidos ORDER BY id DESC'
@@ -51,8 +52,40 @@ router.get('/', async (_req: Request, res: Response): Promise<void> => {
   }
 });
 
-// 2. GET /api/pedidos/resumen
-router.get('/resumen', async (_req: Request, res: Response): Promise<void> => {
+// 2. GET /api/pedidos/mis-pedidos (Cliente autenticado: solo sus propias compras)
+router.get('/mis-pedidos', verificarToken, async (req: Request, res: Response): Promise<void> => {
+  const usuarioId = req.usuario?.id;
+  if (!usuarioId) {
+    res.status(401).json({ error: 'Usuario no autenticado.' });
+    return;
+  }
+
+  try {
+    const [pedidos] = await pool.query<PedidoDbRow[]>(
+      'SELECT * FROM pedidos WHERE usuario_id = ? ORDER BY id DESC',
+      [usuarioId]
+    );
+
+    for (const pedido of pedidos) {
+      const [items] = await pool.query<DetallePedidoDbRow[]>(
+        `SELECT dp.*, p.nombre AS producto_nombre
+         FROM detalle_pedidos dp
+         LEFT JOIN productos p ON dp.producto_id = p.id
+         WHERE dp.pedido_id = ?`,
+        [pedido.id]
+      );
+      pedido.items = items;
+    }
+
+    res.json(pedidos);
+  } catch (error) {
+    console.error('Error al obtener pedidos del cliente:', error);
+    res.status(500).json({ error: 'Error al consultar tus pedidos.' });
+  }
+});
+
+// 3. GET /api/pedidos/resumen (Solo Admin: analítica y cierre)
+router.get('/resumen', verificarToken, soloAdmin, async (_req: Request, res: Response): Promise<void> => {
   try {
     const [totalesRows] = await pool.query<RowDataPacket[]>(
       `SELECT 
@@ -102,8 +135,8 @@ router.get('/resumen', async (_req: Request, res: Response): Promise<void> => {
   }
 });
 
-// 3. POST /api/pedidos
-router.post('/', async (req: Request, res: Response): Promise<void> => {
+// 4. POST /api/pedidos (Cliente autenticado en checkout o Admin en POS)
+router.post('/', verificarToken, async (req: Request, res: Response): Promise<void> => {
   const { cliente_nombre, direccion, telefono, metodo_pago, items } = req.body;
 
   if (!items || !Array.isArray(items) || items.length === 0) {
@@ -119,8 +152,13 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
     const itemsProcesados: { producto_id: number; cantidad: number; precio: number; subtotal: number }[] = [];
 
     for (const item of items) {
+      const cantidad = Number(item.cantidad);
+      if (!Number.isInteger(cantidad) || cantidad <= 0) {
+        throw new Error('Las cantidades de los productos deben ser números enteros mayores a 0.');
+      }
+
       const [prodRows] = await connection.query<RowDataPacket[]>(
-        'SELECT id, nombre, precio, stock FROM productos WHERE id = ? FOR UPDATE',
+        'SELECT id, nombre, precio, stock FROM productos WHERE id = ? AND activo = 1 FOR UPDATE',
         [item.producto_id]
       );
 
@@ -129,33 +167,38 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
       }
 
       const prod = prodRows[0];
-      if (prod.stock < item.cantidad) {
+      if (prod.stock < cantidad) {
         throw new Error(`Stock insuficiente para "${prod.nombre}". Disponible: ${prod.stock}.`);
       }
 
-      const subtotal = Number(prod.precio) * Number(item.cantidad);
+      const subtotal = Number(prod.precio) * cantidad;
       totalCalculado += subtotal;
 
       itemsProcesados.push({
         producto_id: prod.id,
-        cantidad: Number(item.cantidad),
+        cantidad,
         precio: Number(prod.precio),
         subtotal,
       });
 
       await connection.query(
         'UPDATE productos SET stock = stock - ? WHERE id = ?',
-        [item.cantidad, prod.id]
+        [cantidad, prod.id]
       );
     }
 
-    const direccionFinal = direccion?.trim() || 'Venta en mostrador';
+    const esAdminPos = req.usuario?.rol === 'admin';
+    const usuarioIdPedido = !esAdminPos && req.usuario?.id ? req.usuario.id : null;
+    const nombreFinal =
+      cliente_nombre?.trim() || req.usuario?.usuario || 'Cliente Mostrador';
+    const direccionFinal = direccion?.trim() || 'Venta en mostrador (Tienda)';
     const telefonoFinal = telefono?.trim() || null;
 
     const [pedidoResult] = await connection.query<ResultSetHeader>(
-      'INSERT INTO pedidos (cliente_nombre, direccion, telefono, metodo_pago, total) VALUES (?, ?, ?, ?, ?)',
+      'INSERT INTO pedidos (usuario_id, cliente_nombre, direccion, telefono, metodo_pago, total, estado) VALUES (?, ?, ?, ?, ?, ?, ?)',
       [
-        cliente_nombre?.trim() || 'Cliente Mostrador',
+        usuarioIdPedido,
+        nombreFinal,
         direccionFinal,
         telefonoFinal,
         metodo_pago || 'efectivo',
@@ -173,6 +216,11 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
       );
     }
 
+    // Si es una compra online de cliente autenticado, vacía su carrito en MySQL
+    if (usuarioIdPedido) {
+      await connection.query('DELETE FROM carrito_items WHERE usuario_id = ?', [usuarioIdPedido]);
+    }
+
     await connection.commit();
     res.status(201).json({
       mensaje: 'Pedido registrado con éxito.',
@@ -188,8 +236,8 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
-// 4. PUT /api/pedidos/:id/anular
-router.put('/:id/anular', async (req: Request, res: Response): Promise<void> => {
+// 5. PUT /api/pedidos/:id/anular (Solo Admin)
+router.put('/:id/anular', verificarToken, soloAdmin, async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   const connection = await pool.getConnection();
 
@@ -238,6 +286,33 @@ router.put('/:id/anular', async (req: Request, res: Response): Promise<void> => 
   }
 });
 
+// 6. DELETE /api/pedidos/:id (Solo Admin)
+router.delete('/:id', verificarToken, soloAdmin, async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+  const connection = await pool.getConnection();
 
+  try {
+    await connection.beginTransaction();
+
+    await connection.query('DELETE FROM detalle_pedidos WHERE pedido_id = ?', [id]);
+
+    const [result] = await connection.query<ResultSetHeader>('DELETE FROM pedidos WHERE id = ?', [id]);
+
+    if (result.affectedRows === 0) {
+      await connection.rollback();
+      res.status(404).json({ error: 'Registro de venta no encontrado.' });
+      return;
+    }
+
+    await connection.commit();
+    res.json({ mensaje: 'Registro eliminado correctamente.', id: Number(id) });
+  } catch (error) {
+    await connection.rollback();
+    console.error('Error al eliminar registro de venta:', error);
+    res.status(500).json({ error: 'Error interno al eliminar el registro.' });
+  } finally {
+    connection.release();
+  }
+});
 
 export default router;

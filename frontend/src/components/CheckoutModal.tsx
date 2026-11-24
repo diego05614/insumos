@@ -47,8 +47,14 @@ export function CheckoutModal({
     e.preventDefault();
     setError('');
 
-    if (!clienteNombre.trim() || !telefono.trim()) {
-      setError('Por favor completa tu nombre y teléfono de contacto.');
+    const digitosTelefono = telefono.replace(/\D/g, '');
+    if (clienteNombre.trim().length < 3) {
+      setError('Por favor ingresa tu nombre completo.');
+      return;
+    }
+
+    if (digitosTelefono.length < 7) {
+      setError('Ingresa un número de teléfono o WhatsApp válido.');
       return;
     }
 
@@ -72,7 +78,8 @@ export function CheckoutModal({
           cantidad: it.cantidad,
         })),
       };
-const res = await api.post('/pedidos', payload);
+
+      const res = await api.post('/pedidos', payload);
 
       const idsComprados = items.map((it) => it.id);
       onPagoExitoso(idsComprados, {
@@ -93,187 +100,223 @@ const res = await api.post('/pedidos', payload);
   };
 
   return (
-    <div className="modal-overlay" onClick={onCerrar}>
+    <div
+      className="fixed inset-0 bg-slate-950/65 backdrop-blur-xs flex items-center justify-center p-4 z-50"
+      onClick={onCerrar}
+    >
       <div
-        className="modal-container"
         onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: '450px', padding: '24px', maxHeight: '90vh', overflowY: 'auto' }}
+        className="bg-white rounded-[2rem] max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border border-slate-200/90"
       >
-        <div className="modal-header" style={{ marginBottom: '12px' }}>
-          <h2>{esCompraDirecta ? '⚡ Compra Directa' : '🛒 Finalizar Pedido'}</h2>
-          <button type="button" className="btn-close" onClick={onCerrar}>
+        {/* Cabecera unificada AgroInsumos Pro */}
+        <div className="bg-[#07241c] text-white px-6 py-5 flex justify-between items-center relative overflow-hidden shrink-0">
+          <div className="absolute -right-10 -top-10 w-28 h-28 bg-lime-400/15 rounded-full blur-2xl pointer-events-none" />
+
+          <div className="flex items-center gap-3 relative">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-lime-400 to-emerald-500 text-slate-950 flex items-center justify-center text-lg shadow-md">
+              {esCompraDirecta ? '⚡' : '🛒'}
+            </div>
+            <div>
+              <h2 className="text-lg sm:text-xl font-black text-white tracking-tight">
+                {esCompraDirecta ? 'Compra Directa' : 'Finalizar Pedido'}
+              </h2>
+              <p className="text-[11px] text-emerald-200/75">
+                Confirma tus datos de entrega y método de pago
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={onCerrar}
+            aria-label="Cerrar"
+            className="w-8 h-8 rounded-full bg-white/10 hover:bg-lime-400 hover:text-slate-950 text-white/80 flex items-center justify-center text-xl leading-none transition cursor-pointer relative"
+          >
             ×
           </button>
         </div>
 
-        {error && <p className="error-message">{error}</p>}
-
-        {/* Resumen de productos con selector de cantidad */}
-        <div
-          style={{
-            backgroundColor: '#f8fafc',
-            padding: '12px',
-            borderRadius: '8px',
-            border: '1px solid #e2e8f0',
-            marginBottom: '16px',
-          }}
-        >
-          <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#475569', marginBottom: '8px' }}>
-            Resumen de productos:
-          </div>
-
-          {items.map((item) => (
-            <div
-              key={item.id}
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                gap: '10px',
-                padding: '6px 0',
-                borderBottom: '1px solid #e2e8f0',
-              }}
-            >
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#0f172a' }}>
-                  {item.nombre}
-                </div>
-                <small style={{ color: '#64748b' }}>
-                  ${Number(item.precio).toLocaleString('es-CO')} c/u • Disp: {item.stock}
-                </small>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  style={{ padding: '4px 10px', fontWeight: 700 }}
-                  onClick={() => cambiarCantidad(item.id, item.cantidad - 1)}
-                  disabled={item.cantidad <= 1}
-                >
-                  -
-                </button>
-                <span style={{ fontWeight: 700, minWidth: '24px', textAlign: 'center' }}>
-                  {item.cantidad}
-                </span>
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  style={{ padding: '4px 10px', fontWeight: 700 }}
-                  onClick={() => cambiarCantidad(item.id, item.cantidad + 1)}
-                  disabled={item.cantidad >= item.stock}
-                >
-                  +
-                </button>
-              </div>
-
-              <div style={{ fontWeight: 700, minWidth: '80px', textAlign: 'right', color: '#0f172a' }}>
-                ${(Number(item.precio) * item.cantidad).toLocaleString('es-CO')}
-              </div>
-            </div>
-          ))}
-
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              marginTop: '10px',
-              fontSize: '1.05rem',
-              fontWeight: 800,
-              color: '#16a34a',
-            }}
-          >
-            <span>Total a Pagar:</span>
-            <span>${totalPagar.toLocaleString('es-CO')} COP</span>
-          </div>
-        </div>
-
-        {/* Formulario de datos de entrega */}
-        <form onSubmit={handleConfirmarCompra}>
-          <div className="form-group">
-            <label>Nombre completo:</label>
-            <input
-              type="text"
-              placeholder="Ej. Juan Pérez"
-              value={clienteNombre}
-              onChange={(e) => setClienteNombre(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Teléfono / WhatsApp de contacto:</label>
-            <input
-              type="tel"
-              placeholder="Ej. 300 123 4567"
-              value={telefono}
-              onChange={(e) => setTelefono(e.target.value)}
-              required
-            />
-          </div>
-
-          {/* Selector de modalidad de entrega */}
-          <div className="form-group">
-            <label>Modalidad de entrega:</label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-              <button
-                type="button"
-                className={tipoEntrega === 'domicilio' ? 'btn-primary' : 'btn-secondary'}
-                style={{ padding: '8px', fontSize: '0.84rem' }}
-                onClick={() => setTipoEntrega('domicilio')}
-              >
-                🚚 Envío a domicilio
-              </button>
-              <button
-                type="button"
-                className={tipoEntrega === 'tienda' ? 'btn-primary' : 'btn-secondary'}
-                style={{ padding: '8px', fontSize: '0.84rem' }}
-                onClick={() => setTipoEntrega('tienda')}
-              >
-                🏪 Recoger en tienda
-              </button>
-            </div>
-          </div>
-
-          {tipoEntrega === 'domicilio' && (
-            <div className="form-group">
-              <label>Dirección de entrega (Vereda, Finca, Barrio o Ciudad):</label>
-              <textarea
-                placeholder="Ej. Vereda El Rosal, Finca La Esperanza, Km 4 vía principal..."
-                value={direccion}
-                onChange={(e) => setDireccion(e.target.value)}
-                rows={2}
-                required
-              />
+        {/* Cuerpo con scroll interno */}
+        <div className="p-6 sm:p-7 overflow-y-auto flex-1">
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 text-xs font-semibold px-3.5 py-2.5 rounded-2xl mb-4 flex items-center gap-2">
+              <span>⚠️</span>
+              <span>{error}</span>
             </div>
           )}
 
-          <div className="form-group">
-            <label>Método de pago:</label>
-            <select value={metodoPago} onChange={(e) => setMetodoPago(e.target.value as any)}>
-              <option value="efectivo">
-                {tipoEntrega === 'tienda' ? '💵 Efectivo en tienda' : '💵 Efectivo contra entrega'}
-              </option>
-              <option value="nequi">📱 Nequi</option>
-              <option value="daviplata">📱 Daviplata</option>
-              <option value="tarjeta">💳 Transferencia / Tarjeta</option>
-            </select>
+          {/* Resumen de productos con selector de cantidad */}
+          <div className="bg-[#faf9f5] p-4 rounded-2xl border border-slate-200/80 mb-5">
+            <div className="text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-2.5">
+              Resumen de productos
+            </div>
+
+            <div className="divide-y divide-slate-200/80">
+              {items.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex justify-between items-center gap-3 py-2.5 first:pt-0"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-sm text-slate-900 truncate capitalize">
+                      {item.nombre}
+                    </div>
+                    <small className="text-xs text-slate-500">
+                      ${Number(item.precio).toLocaleString('es-CO')} c/u • Disp: {item.stock}
+                    </small>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-slate-200/80 shadow-2xs">
+                    <button
+                      type="button"
+                      onClick={() => cambiarCantidad(item.id, item.cantidad - 1)}
+                      disabled={item.cantidad <= 1}
+                      className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-800 font-bold text-sm transition cursor-pointer disabled:cursor-not-allowed"
+                    >
+                      -
+                    </button>
+                    <span className="font-extrabold text-xs min-w-[22px] text-center text-slate-900">
+                      {item.cantidad}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => cambiarCantidad(item.id, item.cantidad + 1)}
+                      disabled={item.cantidad >= item.stock}
+                      className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-800 font-bold text-sm transition cursor-pointer disabled:cursor-not-allowed"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  <div className="font-extrabold text-sm min-w-[85px] text-right text-slate-900">
+                    ${(Number(item.precio) * item.cantidad).toLocaleString('es-CO')}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-between items-baseline pt-3 mt-2 border-t border-slate-300 text-base font-black text-slate-900">
+              <span>Total a Pagar:</span>
+              <span className="text-emerald-700 text-lg">
+                ${totalPagar.toLocaleString('es-CO')}{' '}
+                <small className="text-xs font-bold text-slate-400">COP</small>
+              </span>
+            </div>
           </div>
 
-          <div className="modal-actions">
-            <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={onCerrar}>
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="btn-primary"
-              style={{ flex: 2 }}
-              disabled={procesando}
-            >
-              {procesando ? 'Procesando pedido...' : '✅ Confirmar Pedido'}
-            </button>
-          </div>
-        </form>
+          {/* Formulario de datos de entrega */}
+          <form onSubmit={handleConfirmarCompra} className="space-y-4">
+            <div>
+              <label className="block text-xs font-extrabold text-slate-700 mb-1.5">
+                Nombre completo
+              </label>
+              <input
+                type="text"
+                placeholder="Ej. Juan Pérez"
+                value={clienteNombre}
+                onChange={(e) => setClienteNombre(e.target.value)}
+                required
+                className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 bg-[#faf9f5] focus:bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-extrabold text-slate-700 mb-1.5">
+                Teléfono / WhatsApp de contacto
+              </label>
+              <input
+                type="tel"
+                placeholder="Ej. 300 123 4567"
+                value={telefono}
+                onChange={(e) => setTelefono(e.target.value)}
+                required
+                className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 bg-[#faf9f5] focus:bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"
+              />
+            </div>
+
+            {/* Selector de modalidad de entrega */}
+            <div>
+              <label className="block text-xs font-extrabold text-slate-700 mb-1.5">
+                Modalidad de entrega
+              </label>
+              <div className="grid grid-cols-2 gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setTipoEntrega('domicilio')}
+                  className={`py-2.5 px-3 rounded-2xl text-xs font-extrabold border transition cursor-pointer ${
+                    tipoEntrega === 'domicilio'
+                      ? 'bg-[#07241c] border-[#07241c] text-lime-300 shadow-md shadow-emerald-950/15'
+                      : 'bg-[#faf9f5] hover:bg-slate-100 border-slate-200 text-slate-700'
+                  }`}
+                >
+                  🚚 Envío a domicilio
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTipoEntrega('tienda')}
+                  className={`py-2.5 px-3 rounded-2xl text-xs font-extrabold border transition cursor-pointer ${
+                    tipoEntrega === 'tienda'
+                      ? 'bg-[#07241c] border-[#07241c] text-lime-300 shadow-md shadow-emerald-950/15'
+                      : 'bg-[#faf9f5] hover:bg-slate-100 border-slate-200 text-slate-700'
+                  }`}
+                >
+                  🏪 Recoger en tienda
+                </button>
+              </div>
+            </div>
+
+            {tipoEntrega === 'domicilio' && (
+              <div>
+                <label className="block text-xs font-extrabold text-slate-700 mb-1.5">
+                  Dirección de entrega (Vereda, Finca, Barrio o Ciudad)
+                </label>
+                <textarea
+                  placeholder="Ej. Vereda El Rosal, Finca La Esperanza, Km 4 vía principal..."
+                  value={direccion}
+                  onChange={(e) => setDireccion(e.target.value)}
+                  rows={2}
+                  required
+                  className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 bg-[#faf9f5] focus:bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"
+                />
+              </div>
+            )}
+
+            <div>
+              <label className="block text-xs font-extrabold text-slate-700 mb-1.5">
+                Método de pago
+              </label>
+              <select
+                value={metodoPago}
+                onChange={(e) => setMetodoPago(e.target.value as any)}
+                className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 bg-[#faf9f5] focus:bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition"
+              >
+                <option value="efectivo">
+                  {tipoEntrega === 'tienda' ? '💵 Efectivo en tienda' : '💵 Efectivo contra entrega'}
+                </option>
+                <option value="nequi">📱 Nequi</option>
+                <option value="daviplata">📱 Daviplata</option>
+                <option value="tarjeta">💳 Transferencia / Tarjeta</option>
+              </select>
+            </div>
+
+            <div className="pt-2 flex gap-2.5">
+              <button
+                type="button"
+                onClick={onCerrar}
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-2xl text-sm transition cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={procesando}
+                className="flex-[2] bg-[#07241c] hover:bg-emerald-900 disabled:opacity-50 text-lime-300 font-black py-3 rounded-2xl text-sm shadow-lg shadow-emerald-950/20 transition cursor-pointer"
+              >
+                {procesando ? 'Procesando pedido...' : '✅ Confirmar Pedido'}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
