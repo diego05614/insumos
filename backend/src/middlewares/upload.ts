@@ -1,22 +1,13 @@
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
+import { v2 as cloudinary } from 'cloudinary';
 
-const uploadDir = path.join(process.cwd(), 'uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (_req, file, cb) => {
-    const extension = path.extname(file.originalname);
-    const nombreUnico = `${Date.now()}-${Math.round(Math.random() * 1e9)}${extension}`;
-    cb(null, nombreUnico);
-  },
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
+
+const storage = multer.memoryStorage();
 
 const fileFilter: multer.Options['fileFilter'] = (_req, file, cb) => {
   const tiposPermitidos = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
@@ -30,5 +21,20 @@ const fileFilter: multer.Options['fileFilter'] = (_req, file, cb) => {
 export const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // Máximo 5 MB por foto
+  limits: { fileSize: 5 * 1024 * 1024 }, // Máximo 5 MB
 });
+
+export const subirACloudinary = (buffer: Buffer): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: 'agroinsumos_productos' },
+      (error, result) => {
+        if (error || !result) {
+          return reject(error || new Error('No se pudo subir la imagen a Cloudinary.'));
+        }
+        resolve(result.secure_url);
+      }
+    );
+    stream.end(buffer);
+  });
+};
